@@ -17,9 +17,9 @@ const store={
    ============================================================ */
 function toast(msg,info,ms){const t=$("#toast");t.textContent=msg;t.className="on"+(info?" info":"");clearTimeout(t._t);t._t=setTimeout(()=>t.className="",ms||2000);}
 function show(id){
-  ["#scrHome","#scrLobby","#scrRoom","#scrDecks","#scrCodex","#scrShop","#scrVault","#scrCampaign","#scrGame"].forEach(s=>$(s).hidden=s!==id);
+  ["#scrHome","#scrWinrate","#scrLobby","#scrRoom","#scrDecks","#scrCodex","#scrShop","#scrVault","#scrCampaign","#scrGame"].forEach(s=>$(s).hidden=s!==id);
   if(id==="#scrGame")GameUI.fit();
-  if(id==="#scrHome"||id==="#scrLobby"||id==="#scrRoom"||id==="#scrDecks"||id==="#scrCodex"||id==="#scrShop"||id==="#scrVault"||id==="#scrCampaign")Audio2.music("menu");
+  if(id==="#scrHome"||id==="#scrWinrate"||id==="#scrLobby"||id==="#scrRoom"||id==="#scrDecks"||id==="#scrCodex"||id==="#scrShop"||id==="#scrVault"||id==="#scrCampaign")Audio2.music("menu");
 }
 function openModal(id){$(id).hidden=false;}
 function closeModal(id){$(id).hidden=true;}
@@ -230,6 +230,8 @@ $("#vaultBack").addEventListener("click",()=>{show("#scrHome");renderHome();});
 $("#campBack").addEventListener("click",()=>{show("#scrHome");renderHome();});
 $("#rulesCoach").addEventListener("click",()=>{closeModal("#mRules");if(!$("#scrGame").hidden&&GameUI.active){$("#pause").hidden=true;GameUI.openCoach();}else{store.del("coach");toast("下次对局开始时会重新显示新手引导",true);}});
 $("#btnSolo").addEventListener("click",openSolo);
+$("#btnWinrate").addEventListener("click",()=>{show("#scrWinrate");WinrateUI.open();});
+$("#winrateBack").addEventListener("click",()=>{WinrateUI.stop();show("#scrHome");renderHome();});
 $("#btnDeck").addEventListener("click",()=>openDecks(Me.hero));
 $("#btnOnline").addEventListener("click",async()=>{if(!Me.nick&&!(await askNick()))return;Net.enterLobby();});
 

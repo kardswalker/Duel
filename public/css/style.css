@@ -60,6 +60,28 @@ input{font:inherit;color:var(--text)}
 .btn-xl b{display:block;font:700 19px var(--serif);letter-spacing:.1em}
 .btn-xl small{display:block;font-size:12px;font-weight:500;opacity:.8;margin-top:2px}
 .home-right{display:flex;flex-direction:column;min-height:0}
+/* ---------- 胜率测试 ---------- */
+.winrate-page{flex:1;min-height:0;display:grid;grid-template-columns:minmax(300px,380px) minmax(0,1fr);gap:16px;padding:18px;overflow:hidden}
+.winrate-config,.winrate-results{min-height:0;overflow:auto;border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:18px}
+.winrate-config h2,.winrate-results h2{margin:0 0 14px;color:var(--gold2);font:700 24px var(--serif)}
+.winrate-config h3,.winrate-results h3{margin:20px 0 10px;color:var(--gold2);font:700 17px var(--serif)}
+.winrate-fields,.winrate-decks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.winrate-fields label,.winrate-decks label{display:flex;flex-direction:column;gap:5px;min-width:0;font-size:12px;color:var(--muted)}
+.winrate-fields select,.winrate-fields input,.winrate-decks select{width:100%;min-width:0;border:1px solid var(--line2);border-radius:9px;background:var(--bg2);color:var(--text);padding:8px;font:14px var(--sans)}
+.winrate-fields select:disabled,.winrate-fields input:disabled,.winrate-decks select:disabled{opacity:.55}
+#wrDeckGridWrap{margin-top:18px}#wrDeckGridWrap summary{cursor:pointer;color:var(--gold2);font-weight:700}
+.winrate-decks{margin-top:10px}.winrate-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.winrate-progress{margin-top:12px;min-height:20px;color:var(--gold2);font-size:13px}
+.winrate-table-wrap{overflow:auto;max-width:100%;margin:8px 0 16px}
+.winrate-table-wrap table{border-collapse:collapse;width:100%;font-size:13px;white-space:nowrap}
+.winrate-table-wrap th,.winrate-table-wrap td{border-bottom:1px solid var(--line);padding:8px 10px;text-align:left}
+.winrate-table-wrap th{color:var(--gold2);background:var(--panel2);position:sticky;top:0}
+.winrate-detail{border:1px solid var(--line);border-radius:10px;margin:9px 0;padding:10px 12px}
+.winrate-detail summary{display:flex;justify-content:space-between;gap:10px;cursor:pointer;color:var(--gold2)}
+.winrate-detail summary span{color:var(--green)}
+.winrate-detail h4{margin:16px 0 5px}.winrate-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:8px;margin-top:14px}
+.winrate-metrics>div{border:1px solid var(--line);border-radius:8px;padding:7px 9px}.winrate-metrics small{display:block;color:var(--muted)}
+.winrate-metrics b{display:block;margin-top:4px}.winrate-diagnostics{font-size:13px;line-height:1.7;color:var(--muted)}
 .hero-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
 .hero-grid.compact{grid-template-columns:repeat(4,1fr)}
 .htile{position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;padding:14px 8px 12px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(180deg,#172128,#11181d);transition:transform .15s,border-color .15s,box-shadow .15s;min-width:0}
@@ -622,6 +644,8 @@ input{font:inherit;color:var(--text)}
 
 /* ---------- 响应式（菜单类页面） ---------- */
 @media (max-width:980px){
+  .winrate-page{display:block;overflow:auto;padding:12px}
+  .winrate-config,.winrate-results{overflow:visible;margin-bottom:12px;padding:14px}
   .home{grid-template-columns:1fr;gap:18px;padding:14px 16px 20px}
   .brand h1{font-size:40px;margin:4px 0 6px}
   .home-left{gap:14px}
