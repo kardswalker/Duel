@@ -445,6 +445,7 @@ const Net={
     s.io.on("reconnect_failed",()=>{if(this.gameOn)GameUI.notice("重连失败，请检查网络后刷新页面",false);});
     this.startHeartbeat();
     s.on("kicked",d=>{toast(d.reason||"连接已断开");this.leaveAll();});
+    s.on("room:kicked",d=>toast(d&&d.reason||"你已被房主移出房间",false,4000));
     s.on("profile:corrected",d=>{if(d&&d.nick){Me.nick=d.nick;renderHome();if(this.inLobby)renderLobby();}});
     s.on("lobby",d=>{this.lobby=d;renderLobby();});
     s.on("lobby:chatlog",list=>{$("#lobbyChatLog").innerHTML="";list.forEach(m=>chatLine("#lobbyChatLog",m));});
@@ -648,7 +649,7 @@ function renderRoom(){
     const el=$("#seat"+i);
     if(!s){el.className="seat empty-seat";el.style.removeProperty("--hcr");el.innerHTML=`<div style="font-size:30px">＋</div><div>等待对手加入…</div><div class="small">把房间号 <b style="color:var(--gold2)">${V.esc(r.code)}</b> 发给朋友</div>`;return;}
     el.className="seat";el.style.setProperty("--hcr",V.heroRgb(s.hero));
-    el.innerHTML=`${i===r.you?`<span class="you">你</span>`:""}${s.host?`<span class="host">房主</span>`:""}${crest(s.hero)}<div><div class="nick${i===r.you?"":" reportable-name"}" ${i===r.you?"":`data-report-id="${V.esc(s.id)}" data-report-name="${V.esc(s.nick)} title="点击举报"`}>${V.esc(s.nick)}</div><div class="hn">${V.esc(s.hero)} · ${V.esc(C.HERO_INFO[s.hero].title)}</div></div><div class="st${s.ready?" ready":""}">${s.ready?"✔ 已准备":"未准备"}</div>${s.connected?"":`<div class="off">连接中断…</div>`}`;
+    el.innerHTML=`${i===r.you?`<span class="you">你</span>`:""}${s.host?`<span class="host">房主</span>`:""}${crest(s.hero)}<div><div class="nick${i===r.you?"":" reportable-name"}" ${i===r.you?"":`data-report-id="${V.esc(s.id)}" data-report-name="${V.esc(s.nick)}" title="点击举报"`}>${V.esc(s.nick)}</div><div class="hn">${V.esc(s.hero)} · ${V.esc(C.HERO_INFO[s.hero].title)}</div></div><div class="st${s.ready?" ready":""}">${s.ready?"✔ 已准备":"未准备"}</div>${s.connected?"":`<div class="off">连接中断…</div>`}${r.hostId===Net.myId&&i!==r.you&&!r.quick&&r.status!=="playing"?`<button type="button" class="btn btn-danger seat-kick" data-kick-id="${V.esc(s.id)}">踢出玩家</button>`:""}`;
   });
   const me=r.seats[r.you];
   const both=r.seats.every(Boolean);
@@ -671,6 +672,14 @@ $("#roomReady").addEventListener("click",()=>{const r=Net.room;if(!r)return;cons
 $("#roomDeck").addEventListener("click",()=>openDecks(Me.hero));
 $("#roomHero").addEventListener("click",()=>pickHero(h=>{Me.hero=h;Net.profile();renderHome();}));
 $("#roomLeave").addEventListener("click",()=>{Net.socket&&Net.socket.emit("room:leave");});
+$("#scrRoom").addEventListener("click",e=>{
+  const btn=e.target.closest("[data-kick-id]");if(!btn||!Net.socket)return;
+  const r=Net.room;if(!r||r.hostId!==Net.myId||r.quick||r.status==="playing")return;
+  btn.disabled=true;
+  Net.socket.emit("room:kick",{targetId:btn.dataset.kickId},res=>{
+    if(!res||!res.ok){btn.disabled=false;toast(res&&res.error||"踢出失败");}
+  });
+});
 $("#roomCodeBtn").addEventListener("click",async()=>{
   const r=Net.room;if(!r)return;
   const url=location.origin+location.pathname+"?room="+r.code;
