@@ -28,9 +28,9 @@ const store={
    ============================================================ */
 function toast(msg,info,ms){const t=$("#toast");t.textContent=msg;t.className="on"+(info?" info":"");clearTimeout(t._t);t._t=setTimeout(()=>t.className="",ms||2000);}
 function show(id){
-  ["#scrHome","#scrLobby","#scrRoom","#scrDecks","#scrCodex","#scrShop","#scrVault","#scrCampaign","#scrDiy","#scrGame"].forEach(s=>$(s).hidden=s!==id);
+  ["#scrHome","#scrWinrate","#scrLobby","#scrRoom","#scrDecks","#scrCodex","#scrShop","#scrVault","#scrCampaign","#scrDiy","#scrGame"].forEach(s=>$(s).hidden=s!==id);
   if(id==="#scrGame")GameUI.fit();
-  if(id==="#scrHome"||id==="#scrLobby"||id==="#scrRoom"||id==="#scrDecks"||id==="#scrCodex"||id==="#scrShop"||id==="#scrVault"||id==="#scrCampaign"||id==="#scrDiy")Audio2.music("menu");
+  if(id==="#scrHome"||id==="#scrWinrate"||id==="#scrLobby"||id==="#scrRoom"||id==="#scrDecks"||id==="#scrCodex"||id==="#scrShop"||id==="#scrVault"||id==="#scrCampaign"||id==="#scrDiy")Audio2.music("menu");
 }
 function openModal(id){$(id).hidden=false;}
 function closeModal(id){$(id).hidden=true;}
@@ -206,8 +206,7 @@ $("#bindGo").addEventListener("click",async()=>{
 function heroTile(h,on){
   const info=C.HERO_INFO[h]||{difficulty:2,title:"",tip:""},p=C.PROFILES[h]||{faction:"",style:""};
   const diy=isDiyHero(h);
-  const idx=diy?"":String(HEROES.indexOf(h)+1).padStart(2,"0");
-  return`<button class="htile${on?" on":""}" data-hero="${V.esc(h)}" style="--hcr:${V.heroRgb(h)}"><span class="htile-art">${crest(h)}</span><span class="htile-veil"></span>${idx?`<span class="htile-no">${idx}</span>`:""}${info.difficulty===1?`<span class="badge">新手推荐</span>`:""}<span class="htile-tx"><strong>${V.esc(h)}${diy?' <i class="diy-tag">DIY</i>':''}</strong><small>${V.esc(info.title||p.faction)}</small><span class="stars" title="上手难度">${diy?"玩家自制":stars(info.difficulty)}</span></span></button>`;
+  return`<button class="htile${on?" on":""}" data-hero="${V.esc(h)}" style="--hcr:${V.heroRgb(h)}">${info.difficulty===1?`<span class="badge">新手推荐</span>`:""}${crest(h)}<strong>${V.esc(h)}${diy?' <i class="diy-tag">DIY</i>':''}</strong><small>${V.esc(info.title||p.faction)}</small><span class="stars" title="上手难度">${diy?"玩家自制":stars(info.difficulty)}</span></button>`;
 }
 function deckSelectHTML(h){
   const act=Decks.active(h).id;
@@ -217,11 +216,12 @@ function deckSelectHTML(h){
 function renderHome(){
   const cur=Me.hero;
   $("#heroGrid").innerHTML=HEROES.map(h=>heroTile(h,h===cur)).join("");
-  const p=C.PROFILES[cur]||{faction:"",style:"",hp:"-"},info=C.HERO_INFO[cur]||{difficulty:2,title:p.faction||"",tip:""};
+  const p=C.PROFILES[cur],info=C.HERO_INFO[cur]||{difficulty:2,title:p?p.faction:"",tip:""};
   const d=$("#heroDetail");d.style.setProperty("--hcr",V.heroRgb(cur));
-  d.innerHTML=`<div class="hd-top">${crest(cur)}<div class="hd-id"><div class="hd-k">${V.esc(p.faction)} · ${V.esc(p.style)}</div><h3>${V.esc(cur)}${isDiyHero(cur)?' <i class="diy-tag">DIY</i>':''}<small>${V.esc(info.title)}</small></h3></div><div class="hd-nums"><div class="hd-n"><b>${p.hp}</b><span>生命</span></div><div class="hd-n"><b class="st">${stars(info.difficulty)}</b><span>难度</span></div></div></div>
+  d.innerHTML=`${crest(cur)}<div><h3>${V.esc(cur)}${isDiyHero(cur)?' <i class="diy-tag">DIY</i>':''}<small>${V.esc(info.title)}</small></h3>
+    <div class="meta"><span>阵营 <b>${V.esc(p.faction)}</b></span><span>风格 <b>${V.esc(p.style)}</b></span><span>生命 <b>${p.hp}</b></span><span>难度 <b style="color:var(--gold)">${stars(info.difficulty)}</b></span></div>
     <p class="tip">${V.esc(info.tip)}</p>
-    <div class="deck-pick"><label for="homeDeck">出战卡组</label>${deckSelectHTML(cur)}<button class="btn" id="homeDeckEdit">管理卡组</button><button class="btn" id="homeLore">查看档案</button></div>`;
+    <div class="deck-pick"><label for="homeDeck">出战卡组</label>${deckSelectHTML(cur)}<button class="btn" id="homeDeckEdit">管理卡组</button><button class="btn" id="homeLore">查看档案</button></div></div>`;
   $("#homeNickTxt").textContent=Me.nick||"设置昵称";
   $("#homeSound").classList.toggle("off",!Audio2.musicOn&&!Audio2.sfxOn);
 }
@@ -239,6 +239,8 @@ $("#btnCodex").addEventListener("click",()=>openCodex());
 $("#homeNick").addEventListener("click",()=>askNick());
 $("#homeSound").addEventListener("click",()=>{const on=!(Audio2.musicOn||Audio2.sfxOn);Audio2.setSfx(on);Audio2.setMusic(on);if(on)Audio2.music("menu");toast(on?"声音已开启":"声音已关闭",true);renderHome();});
 $("#btnRules").addEventListener("click",()=>openModal("#mRules"));
+$("#btnWinrate").addEventListener("click",()=>{show("#scrWinrate");WinrateUI.open();});
+$("#winrateBack").addEventListener("click",()=>{WinrateUI.stop();show("#scrHome");renderHome();});
 $("#btnShop").addEventListener("click",()=>{if(!Account.me){toast("请先登录",false);openAuth();return;}renderShop();show("#scrShop");});
 $("#btnVault").addEventListener("click",()=>{if(!Account.me){toast("请先登录",false);openAuth();return;}renderVault();show("#scrVault");});
 $("#btnCampaign").addEventListener("click",()=>{if(!Account.me){toast("请先登录",false);openAuth();return;}renderCampaign();show("#scrCampaign");});
@@ -958,6 +960,7 @@ const Net={
     s.io.on("reconnect_failed",()=>{if(this.gameOn)GameUI.notice("重连失败，请检查网络后刷新页面",false);});
     this.startHeartbeat();
     s.on("kicked",d=>{toast(d.reason||"连接已断开");this.leaveAll();});
+    s.on("room:kicked",d=>toast(d&&d.reason||"你已被房主移出房间",false,4000));
     s.on("profile:corrected",d=>{if(d&&d.nick){Me.nick=d.nick;renderHome();if(this.inLobby)renderLobby();}});
     s.on("lobby",d=>{this.lobby=d;renderLobby();});
     s.on("lobby:chatlog",list=>{$("#lobbyChatLog").innerHTML="";list.forEach(m=>chatLine("#lobbyChatLog",m));});
@@ -1147,7 +1150,7 @@ $("#reportSend").addEventListener("click",()=>{
 function renderLobby(){
   const me=Me.hero;
   const mc=$("#lobbyMe");mc.style.setProperty("--hcr",V.heroRgb(me));
-  mc.innerHTML=`${crest(me)}<div class="who"><b>${V.esc(Me.nick)}</b><div>${V.esc(me)}${isDiyHero(me)?' <i class="diy-tag">DIY</i>':""} · ${V.esc((C.HERO_INFO[me]||{}).title||(C.PROFILES[me]||{}).faction||"")} · 卡组：${V.esc(Me.deckName(me))}</div></div><button class="btn" id="lobbyHero">更换卡牌师</button><button class="btn" id="lobbyDeck">卡组</button>`;
+  mc.innerHTML=`${crest(me)}<div class="who"><b>${V.esc(Me.nick)}</b><div>${V.esc(me)} · ${V.esc((C.HERO_INFO[me]||{}).title||"")} · 卡组：${V.esc(Me.deckName(me))}</div></div><button class="btn" id="lobbyHero">更换卡牌师</button><button class="btn" id="lobbyDeck">卡组</button>`;
   $("#lobbyHero").onclick=()=>pickHero(h=>{Me.hero=h;Net.profile();renderLobby();renderHome();});
   $("#lobbyDeck").onclick=()=>openDecks(Me.hero);
   const L=Net.lobby;
@@ -1205,7 +1208,7 @@ function renderRoom(){
     const el=$("#seat"+i);
     if(!s){el.className="seat empty-seat";el.style.removeProperty("--hcr");el.innerHTML=`<div style="font-size:30px">＋</div><div>等待对手加入…</div><div class="small">把房间号 <b style="color:var(--gold2)">${V.esc(r.code)}</b> 发给朋友</div>`;return;}
     el.className="seat";el.style.setProperty("--hcr",V.heroRgb(s.hero));
-    el.innerHTML=`${i===r.you?`<span class="you">你</span>`:""}${s.host?`<span class="host">房主</span>`:""}${crest(s.hero)}<div><div class="nick${i===r.you?"":" reportable-name"}" ${i===r.you?"":`data-report-id="${V.esc(s.id)}" data-report-name="${V.esc(s.nick)} title="点击举报"`}>${V.esc(s.nick)}</div><div class="hn">${V.esc(s.hero)}${isDiyHero(s.hero)?' <i class="diy-tag">DIY</i>':""} · ${V.esc((C.HERO_INFO[s.hero]||{}).title||(C.PROFILES[s.hero]||{}).faction||"")}</div></div><div class="st${s.ready?" ready":""}">${s.ready?"已准备":"未准备"}</div>${s.connected?"":`<div class="off">连接中断…</div>`}`;
+    el.innerHTML=`${i===r.you?`<span class="you">你</span>`:""}${s.host?`<span class="host">房主</span>`:""}${crest(s.hero)}<div><div class="nick${i===r.you?"":" reportable-name"}" ${i===r.you?"":`data-report-id="${V.esc(s.id)}" data-report-name="${V.esc(s.nick)}" title="点击举报"`}>${V.esc(s.nick)}</div><div class="hn">${V.esc(s.hero)}${isDiyHero(s.hero)?' <i class="diy-tag">DIY</i>':""} · ${V.esc((C.HERO_INFO[s.hero]||{}).title||(C.PROFILES[s.hero]||{}).faction||"")}</div></div><div class="st${s.ready?" ready":""}">${s.ready?"已准备":"未准备"}</div>${s.connected?"":`<div class="off">连接中断…</div>`}${r.hostId===Net.myId&&i!==r.you&&!r.quick&&r.status!=="playing"?`<button type="button" class="btn btn-danger seat-kick" data-kick-id="${V.esc(s.id)}">踢出玩家</button>`:""}`;
   });
   const me=r.seats[r.you];
   const both=r.seats.every(Boolean);
@@ -1228,6 +1231,14 @@ $("#roomReady").addEventListener("click",()=>{const r=Net.room;if(!r)return;cons
 $("#roomDeck").addEventListener("click",()=>openDecks(Me.hero));
 $("#roomHero").addEventListener("click",()=>pickHero(h=>{Me.hero=h;Net.profile();renderHome();}));
 $("#roomLeave").addEventListener("click",()=>{Net.socket&&Net.socket.emit("room:leave");});
+$("#scrRoom").addEventListener("click",e=>{
+  const btn=e.target.closest("[data-kick-id]");if(!btn||!Net.socket)return;
+  const r=Net.room;if(!r||r.hostId!==Net.myId||r.quick||r.status==="playing")return;
+  btn.disabled=true;
+  Net.socket.timeout(4000).emit("room:kick",{targetId:btn.dataset.kickId},(err,res)=>{
+    if(err||!res||!res.ok){btn.disabled=false;toast(err?"踢出无响应，请检查服务器是否已更新并重启":res&&res.error||"踢出失败");}
+  });
+});
 $("#roomCodeBtn").addEventListener("click",async()=>{
   const r=Net.room;if(!r)return;
   const url=location.origin+location.pathname+"?room="+r.code;
@@ -1433,19 +1444,17 @@ function renderCampaign(){
   $("#campPrev").hidden=Campaign.page===0;
   $("#campNext").hidden=start+per>=HEROES.length;
   $("#campPage").textContent=`${Campaign.page+1} / ${Math.ceil(HEROES.length/per)}`;
-  /* 竖长条 4:9：整幅封面（CardArt.cover）在上，姓名在下的窄条 */
+  /* 竖长条 4:9：图片区在上（预留 img 接口，暂无图片时用徽记+角色介绍顶替），文字在下 */
   list.innerHTML=slice.map(h=>{
-    const cam=Account.me&&Account.me.campaign&&Account.me.campaign[h];
+    const info=C.HERO_INFO[h],cam=Account.me&&Account.me.campaign&&Account.me.campaign[h];
     const unlocked=cam&&cam.unlocked;
-    /* 目前只有部分角色写了剧情章节，没写的不要显示成「已解锁」让人点进去 */
-    const story=!!C.campaignOf(h);
-    const sub=!story?"剧情未开放":(unlocked?"★ 已解锁":"未解锁");
-    return`<button class="camp-bar ${story?(unlocked?"":"locked"):"locked nostory"}" data-hero="${V.esc(h)}" style="--hcr:${V.heroRgb(h)}">
+    return`<button class="camp-bar ${unlocked?"":"locked"}" data-hero="${V.esc(h)}" style="--hcr:${V.heroRgb(h)}">
       <div class="camp-img" style="--hcr:${V.heroRgb(h)}">
         <img class="camp-photo" alt="" hidden data-hero-img="${V.esc(h)}">
-        <span class="crest camp-crest" style="--hcr:${V.heroRgb(h)}">${window.CardArt&&CardArt.cover?CardArt.cover(h):crestArt(h)}</span>
+        <span class="crest" style="--hcr:${V.heroRgb(h)}">${crestArt(h)}</span>
+        <span class="camp-photo-fallback">${V.esc(info.title)}</span>
       </div>
-      <div class="camp-txt"><strong>${V.esc(h)}</strong><span class="muted">${sub}</span></div>
+      <div class="camp-txt"><strong>${V.esc(h)}</strong><span class="muted">${unlocked?"★ 已解锁":"未解锁"}</span></div>
     </button>`;
   }).join("");
   /* 预留图片接口：img.camp-photo 有 src 时自动替换徽记（后续接角色立绘） */
@@ -1457,24 +1466,12 @@ function renderCampaign(){
 }
 $("#campHeroList").addEventListener("click",e=>{
   const b=e.target.closest("button[data-hero]");if(!b)return;
-  const hero=b.dataset.hero;
-  /* 没写章节的角色直接拦在外面：以前是先藏列表再渲染，一抛错整页就白了 */
-  if(!C.campaignOf(hero)){toast("该角色的剧情章节还没开放",false);return;}
-  const cam=Account.me&&Account.me.campaign&&Account.me.campaign[hero];
+  const cam=Account.me&&Account.me.campaign&&Account.me.campaign[b.dataset.hero];
   if(!cam||!cam.unlocked){toast("先用该角色赢得一场普通对局解锁剧情",false);return;}
-  Campaign.hero=hero;
+  Campaign.hero=b.dataset.hero;
   const list=$("#campHeroList");list.classList.remove("out-l","out-r","in-l","in-r");Campaign._busy=false;
-  try{
-    renderCampaignDetail();
-    $("#campListWrap").hidden=true;
-    $("#campDetail").hidden=false;
-  }catch(err){
-    /* 渲染失败就退回列表，绝不留一块空白 */
-    console.warn("[campaign]",err);
-    $("#campDetail").hidden=true;
-    $("#campListWrap").hidden=false;
-    toast("剧情数据读取失败，请刷新页面重试",false);
-  }
+  $("#campListWrap").hidden=true;
+  renderCampaignDetail();$("#campDetail").hidden=false;
 });
 /* 翻页：点击按钮，带滑入/滑出动画 */
 function flipCampaign(dir){
@@ -1494,10 +1491,8 @@ $("#campNext").addEventListener("click",()=>flipCampaign(1));
 $("#campDetailBack").addEventListener("click",()=>{$("#campDetail").hidden=true;$("#campListWrap").hidden=false;renderCampaign();});
 function renderCampaignDetail(){
   const cam=C.campaignOf(Campaign.hero);
-  if(!cam||!cam.chapters||!cam.chapters.ch1)return;
   const ch=cam.chapters.ch1;
-  const data=(Account.me.campaign&&Account.me.campaign[Campaign.hero])||{slots:[]};
-  if(!data.slots||!data.slots.length)data.slots=[{},{},{}];
+  const data=Account.me.campaign[Campaign.hero];
   $("#campChapter").innerHTML=`<h2>${V.esc(ch.title)}</h2>
     <p class="muted">${V.esc((cam.intro||[])[0]||"")}</p>
     <p>胜利条件：撑过 <b>${ch.survive[0]}</b> 回合（1★）· <b>${ch.survive[1]}</b>（2★）· <b>${ch.survive[2]}</b>（3★）</p>
@@ -1525,8 +1520,8 @@ let campGame=null;
 function startCampaign(hero,slot){
   if(campGame)campGame.dispose();
   const cam=C.campaignOf(hero),ch=cam.chapters.ch1;
-  const data=Account.me.campaign[hero],s=(data.slots&&data.slots[slot])||{};
-  const deck=(s.deck||[]).slice();
+  const data=Account.me.campaign[hero],s=data.slots[slot];
+  const deck=s.deck.slice();
   /* 若不足 30 张，用该角色初始弱卡补足，保证可玩 */
   const base=C.campaignInitialDeck(hero,slot);
   for(const id of base){if(deck.length>=30)break;deck.push(id);}

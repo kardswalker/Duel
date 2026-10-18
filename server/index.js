@@ -341,7 +341,7 @@ function roomChanged(r){
 }
 function createRoom(host,name,password,quick,pool){
   const r={id:crypto.randomUUID(),code:randomCode(),name:clean(name,16)||`${host.nick}的房间`,password:clean(password,16),
-    hostId:host.id,seats:[null,null],ready:[false,false],status:"waiting",match:null,quick:!!quick,pool:roomPool({pool}),
+    hostId:host.id,seats:[null,null],ready:[false,false],status:"waiting",match:null,quick:!!quick,pool:roomPool({pool}),kickedIds:new Set(),
     chat:[],createdAt:now(),countdownT:null,countdownAt:0};
   rooms.set(r.id,r);return r;
 }
@@ -629,6 +629,7 @@ io.on("connection",socket=>{
     const r=d.id?rooms.get(String(d.id)):[...rooms.values()].find(x=>x.code===clean(d.code,10));
     if(!r)return reply(cb,{ok:false,error:"房间不存在或已关闭"});
     if(r.seats.includes(u.id))return reply(cb,{ok:true});
+    if(r.kickedIds.has(u.id))return reply(cb,{ok:false,error:"你已被房主移出该房间"});
     /* 池分离：带着 DIY 角色进不了普通房间 */
     if(diyBlocked(u.hero,r))return reply(cb,{ok:false,error:diyBlockMsg(u.hero)});
     if(r.password&&clean(d.password,16)!==r.password)return reply(cb,{ok:false,error:r.password&&d.password?"密码错误":"需要密码",needPassword:true});
@@ -638,6 +639,25 @@ io.on("connection",socket=>{
   });
 
   socket.on("room:leave",()=>{const u=userOf(socket);if(u){leaveRoom(u);send(u,"room",null);}});
+
+  socket.on("room:kick",(d,cb)=>{
+    const host=userOf(socket);const r=host&&host.roomId&&rooms.get(host.roomId);
+    if(!r||r.hostId!==host.id||r.quick)return reply(cb,{ok:false,error:"只有房主可以移出玩家"});
+    if(r.status==="playing")return reply(cb,{ok:false,error:"对局进行中不能移出玩家"});
+    const targetId=String(d&&d.targetId||"");
+    if(!targetId||targetId===host.id||!r.seats.includes(targetId))return reply(cb,{ok:false,error:"该玩家不在房间内"});
+    const target=users.get(targetId);
+    if(!target)return reply(cb,{ok:false,error:"该玩家不在房间内"});
+    r.kickedIds.add(targetId);
+    if(target.dcTimer){clearTimeout(target.dcTimer);target.dcTimer=null;}
+    leaveRoom(target,true);
+    roomSys(r,`${host.nick} 将 ${target.nick} 移出了房间`);
+    send(target,"room:kicked",{reason:"你已被房主移出房间"});
+    send(target,"room",null);
+    send(target,"lobby",lobbySnapshot());
+    if(!target.connected)users.delete(targetId);
+    reply(cb,{ok:true});
+  });
 
   socket.on("room:ready",ready=>{
     const u=userOf(socket);const r=u&&u.roomId&&rooms.get(u.roomId);if(!r)return;
